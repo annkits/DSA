@@ -427,11 +427,5 @@ int main(){
     }
     PlotGraph(sizes, select_results, bubble_results, shaker_results, 5);
 
-    // int theor[] = {c1_theoretical + m1_theoretical, 
-    //     c2_theoretical + m2_theoretical, 
-    //     c3_theoretical + m3_theoretical, 
-    //     c4_theoretical + m4_theoretical, 
-    //     c5_theoretical + m5_theoretical};
-
     PlotTableGnuplot(sizes, results, 5);
 }
