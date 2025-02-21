@@ -1,0 +1,437 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
+#include <math.h>
+
+#define N1 100
+#define N2 200
+#define N3 300
+#define N4 400
+#define N5 500
+
+// заполнение массива возрастающими числами
+void FillInc(int A[], int n){
+    for (int i = 0; i < n; i++){
+        A[i] = i + 1; 
+    }
+}
+
+// заполнение массива убывающими числами
+void FillDec(int A[], int n){
+    for (int i = 0; i < n; i++){
+        A[i] = n - i;
+    }
+}
+
+// заполнение массива случайными числами
+void FillRand(int A[], int n){
+    srand(time(NULL));
+    for (int i = 0; i < n; i++){
+        A[i] = rand();
+    }
+}
+
+//подсчёт контрольной суммы элементов массива А
+unsigned long long int CheckSum(int A[], int n){
+    unsigned long long int sum = 0;
+    for (int i = 0; i < n; i++){
+        sum += A[i];
+    }
+    return sum;
+}
+
+//подсчёт серий в массиве А
+int RunNumber(int A[], int n){
+    if (n == 0) return 0;
+    int cnt = 1;
+    for (int i = 1; i < n; i++){
+        if (A[i] < A[i - 1]){
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
+//вывод массива на экран
+void PrintMas(int A[], int n){
+    for (int i = 0; i < n; i++){
+        printf("%d ", A[i]);
+    }
+    printf("\n");
+}
+
+//средняя длина серий в массиве
+float AverageSeriesLenght(int A[], int n){
+    if (n == 0) return 0;
+    int series_count = RunNumber(A, n);
+    return (float)n / series_count;
+}
+
+//расчёт теоретических сравнений
+int CTheoretical(int n){
+    int c_theoretical = ((int)(n * n - n) / 2);
+    return c_theoretical;
+}
+
+//расчёт теоретических пересылок
+int MTheoretical(int n){
+    int m_theoretical = ((int)(3 * (n * n - n)) / 4);
+    return m_theoretical;
+}
+
+//расчёт отношений факт. сравн. и перест. к теоретическим
+void CMComparison(int c_fact, int m_fact, int *c_theoretical, int *m_theoretical){
+    float c_diff = (float)c_fact / *c_theoretical;
+    printf("Отношение фактического количества сравнений с теоретическим: %.3f\n", c_diff);
+    float m_diff = (float)m_fact / *m_theoretical;
+    printf("Отношение фактического количества пересылок с теоретическим: %.3f\n", m_diff);
+}
+
+//функция метода SelectSort + фактические сравнения и перестановки
+void selectSort(int A[], int n, int *c_fact, int *m_fact){
+    *c_fact = 0;
+    *m_fact = 0;
+    for (int i = 0; i < n - 1; i++){
+        int j_min = i;
+        for (int j = i + 1; j < n; j++){
+            (*c_fact)++;
+            if (A[j] < A[j_min]){
+                j_min = j;
+            }
+        }
+            int temp = A[i];
+            (*m_fact)++;
+            A[i] = A[j_min];
+            (*m_fact)++;
+            A[j_min] = temp;
+            (*m_fact)++;
+    }
+}
+
+void bubbleSort(int A[], int n, int *c_fact, int *m_fact){
+    *c_fact = 0;
+    *m_fact = 0;
+    for (int i = 0; i < n - 1; i++){
+        for (int j = 1; j < n - i; j++){
+            (*c_fact)++;
+            if (A[j] < A[j - 1]){
+                int temp = A[j];
+                (*m_fact)++;
+                A[j] = A[j - 1];
+                (*m_fact)++;
+                A[j - 1] = temp;
+                (*m_fact)++;
+            }
+        }
+    }
+    // printf("Массив после сортировки: \n");
+    // PrintMas(A, n);
+    // printf("Количество сделанных сравнений: %d\n", *c_fact);
+    // printf("Количество сделанных пересылок: %d\n", *m_fact);
+}
+
+void shakerSort(int A[], int n, int *c_fact, int *m_fact){
+    *c_fact = 0;
+    *m_fact = 0;
+
+    int l = 0;
+    int r = n - 1;
+    int k = n;
+
+    while (l < r){
+        for (int j = r; j > l; j--){
+            (*c_fact)++;
+            if (A[j] < A[j - 1]){
+                int temp = A[j];
+                (*m_fact)++;
+                A[j] = A[j - 1];
+                (*m_fact)++;
+                A[j - 1] = temp;
+                (*m_fact)++;
+                k = j;
+            }
+        }
+        l = k;
+
+        for (int j = l; j < r; j++){
+            (*c_fact)++;
+            if (A[j] > A[j + 1]){
+                int temp = A[j];
+                (*m_fact)++;
+                A[j] = A[j + 1];
+                (*m_fact)++;
+                A[j + 1] = temp;
+                (*m_fact)++;
+                k = j;
+            }
+        }
+        r = k;
+    }
+}
+
+void output(int A[], int n, int *c_theoretical, int *m_theoretical){
+    int c_fact = 0;
+    int m_fact = 0;
+
+    FillDec(A, n);
+    // PrintMas(A, n);
+    printf("Контрольная сумма: %lld\n", CheckSum(A, n));
+    printf("Количество серий: %d\n", RunNumber(A, n));
+    printf("\n");
+
+    int *copyA = (int *)malloc(n * sizeof(int));
+    memcpy(copyA, A, n * sizeof(int));
+    shakerSort(copyA, n, &c_fact, &m_fact);
+    printf("Контрольная сумма: %lld\n", CheckSum(copyA, n));
+    printf("Количество серий: %d\n", RunNumber(copyA, n));
+    CMComparison(c_fact, m_fact, c_theoretical, m_theoretical);
+    printf("\n");
+    free(copyA);
+
+    FillRand(A, n);
+    // PrintMas(A, n);
+    printf("Контрольная сумма: %lld\n", CheckSum(A, n));
+    printf("Количество серий: %d\n", RunNumber(A, n));
+    printf("\n");
+
+    copyA = (int *)malloc(n * sizeof(int));
+    memcpy(copyA, A, n * sizeof(int));
+    shakerSort(copyA, n, &c_fact, &m_fact);
+    printf("Контрольная сумма: %lld\n", CheckSum(copyA, n));
+    printf("Количество серий: %d\n", RunNumber(copyA, n));
+    CMComparison(c_fact, m_fact, c_theoretical, m_theoretical);
+    printf("\n");
+    free(copyA);
+
+    FillInc(A, n);
+    // PrintMas(A, n);
+    printf("Контрольная сумма: %lld\n", CheckSum(A, n));
+    printf("Количество серий: %d\n", RunNumber(A, n));
+    printf("\n");
+
+    copyA = (int *)malloc(n * sizeof(int));
+    memcpy(copyA, A, n * sizeof(int));
+    shakerSort(copyA, n, &c_fact, &m_fact);
+    printf("Контрольная сумма: %lld\n", CheckSum(copyA, n));
+    printf("Количество серий: %d\n", RunNumber(copyA, n));
+    CMComparison(c_fact, m_fact, c_theoretical, m_theoretical);
+    printf("\n");
+    free(copyA);
+}
+
+void RunTests(int n, int *results) {
+    int A[n], B[n];
+    int c_fact, m_fact;
+    
+    FillDec(A, n);
+    memcpy(B, A, n * sizeof(int));
+    bubbleSort(B, n, &c_fact, &m_fact);
+    results[0] = c_fact + m_fact;
+
+    FillRand(A, n);
+    memcpy(B, A, n * sizeof(int));
+    bubbleSort(B, n, &c_fact, &m_fact);
+    results[1] = c_fact + m_fact;
+
+    FillInc(A, n);
+    memcpy(B, A, n * sizeof(int));
+    bubbleSort(B, n, &c_fact, &m_fact);
+    results[2] = c_fact + m_fact;
+
+    FillDec(A, n);
+    memcpy(B, A, n * sizeof(int));
+    shakerSort(B, n, &c_fact, &m_fact);
+    results[3] = c_fact + m_fact;
+
+    FillRand(A, n);
+    memcpy(B, A, n * sizeof(int));
+    shakerSort(B, n, &c_fact, &m_fact);
+    results[4] = c_fact + m_fact;
+
+    FillInc(A, n);
+    memcpy(B, A, n * sizeof(int));
+    shakerSort(B, n, &c_fact, &m_fact);
+    results[5] = c_fact + m_fact;
+}
+
+void PrintTableRow(int N, int *results) {
+    printf("| %-3d | %-12d | %-12d | %-12d | %-9d | %-12d | %-12d |\n", N, results[0], results[1], results[2], results[3], results[4], results[5]);
+}
+
+//для 5+ (массивы случайных чисел)
+void RunTests2(int n, int *select_results, int *bubble_results, int *shaker_results) {
+    int A[n], B[n];
+    int c_fact, m_fact;
+
+    // Тест для сортировки выбором
+    FillRand(A, n);
+    memcpy(B, A, n * sizeof(int));
+    selectSort(B, n, &c_fact, &m_fact);
+    select_results[0] = c_fact + m_fact;
+
+    // Тест для пузырьковой сортировки
+    FillRand(A, n);
+    memcpy(B, A, n * sizeof(int));
+    bubbleSort(B, n, &c_fact, &m_fact);
+    bubble_results[0] = c_fact + m_fact;
+
+    //Тест для шейкер сортировки
+    FillRand(A, n);
+    memcpy(B, A, n * sizeof(int));
+    shakerSort(B, n, &c_fact, &m_fact);
+    shaker_results[0] = c_fact + m_fact;
+}
+
+void PlotGraph(int *sizes, int *select_results, int *bubble_results, int *shaker_results, int count) {
+    FILE *gp = popen("gnuplot -persistent", "w");
+    if (gp == NULL) {
+        printf("Ошибка при запуске Gnuplot!\n");
+        return;
+    }
+
+    fprintf(gp, "set title 'Сравнение алгоритмов сортировки'\n");
+    fprintf(gp, "set xlabel 'Размер массива n'\n");
+    fprintf(gp, "set ylabel 'Mф + Cф'\n");
+    fprintf(gp, "plot '-' with lines title 'Bubble Sort', '-' with lines title 'Select Sort', '-' with lines title 'Shaker Sort'\n");
+
+    for (int i = 0; i < count; i++) {
+        fprintf(gp, "%d %d\n", sizes[i], select_results[i]);
+    }
+    fprintf(gp, "e\n");
+
+    for (int i = 0; i < count; i++) {
+        fprintf(gp, "%d %d\n", sizes[i], bubble_results[i]);
+    }
+    fprintf(gp, "e\n");
+
+    for (int i = 0; i < count; i++) {
+        fprintf(gp, "%d %d\n", sizes[i], shaker_results[i]);
+    }
+    fprintf(gp, "e\n");
+
+    pclose(gp);
+}
+
+void PlotTableGnuplot(int *sizes, int results[][6], int count) {
+    FILE *gp = popen("gnuplot -persistent", "w");
+    if (gp == NULL) {
+        printf("Ошибка при запуске Gnuplot!\n");
+        return;
+    }
+
+    fprintf(gp, "set title 'Трудоемкость пузырьковой и шейкерной сортировок'\n");
+    fprintf(gp, "unset key\n");
+    fprintf(gp, "unset border\n");
+    fprintf(gp, "unset tics\n");
+    fprintf(gp, "set xrange [0:7]\n");
+    fprintf(gp, "set yrange [%d:-1]\n", count);
+
+    // *** Заголовки ***
+    fprintf(gp, "set label 1 'n' at 0.5,-0.5 center\n");
+    fprintf(gp, "set label 2 'Mф+Cф пузырьковой' at 2,-0.5 center\n");
+    fprintf(gp, "set label 3 'Mф+Cф шейкерной' at 5,-0.5 center\n");
+    fprintf(gp, "set label 4 'Убыв.' at 1.5,-0.2 center\n");
+    fprintf(gp, "set label 5 'Случ.' at 2.5,-0.2 center\n");
+    fprintf(gp, "set label 6 'Возр.' at 3.5,-0.2 center\n");
+    fprintf(gp, "set label 7 'Убыв.' at 4.5,-0.2 center\n");
+    fprintf(gp, "set label 8 'Случ.' at 5.5,-0.2 center\n");
+    fprintf(gp, "set label 9 'Возр.' at 6.5,-0.2 center\n");
+
+    // *** Данные в ячейках ***
+    for (int i = 0; i < count; i++) {
+        double y = i + 0.5;  // Центр строки
+
+        fprintf(gp, "set label '%d' at 0.5,%f center\n", sizes[i], y);
+        fprintf(gp, "set label '%d' at 1.5,%f center\n", results[i][0], y);
+        fprintf(gp, "set label '%d' at 2.5,%f center\n", results[i][1], y);
+        fprintf(gp, "set label '%d' at 3.5,%f center\n", results[i][2], y);
+        fprintf(gp, "set label '%d' at 4.5,%f center\n", results[i][3], y);
+        fprintf(gp, "set label '%d' at 5.5,%f center\n", results[i][4], y);
+        fprintf(gp, "set label '%d' at 6.5,%f center\n", results[i][5], y);
+    }
+
+    // *** Линии таблицы ***
+    for (int i = 0; i <= count; i++) {
+        fprintf(gp, "set arrow from 0,%d to 7,%d nohead lt 1 lw 1\n", i, i);
+    }
+    for (int j = 0; j <= 7; j++) {
+        fprintf(gp, "set arrow from %d,0 to %d,%d nohead lt 1 lw 1\n", j, j, count);
+    }
+
+    fprintf(gp, "plot NaN\n");
+    pclose(gp);
+}
+
+int main(){
+    int A[N1];
+    int B[N2];
+    int C[N3];
+    int D[N4];
+    int E[N5];
+
+    int c1_theoretical = CTheoretical(N1);
+    int c2_theoretical = CTheoretical(N2);
+    int c3_theoretical = CTheoretical(N3);
+    int c4_theoretical = CTheoretical(N4);
+    int c5_theoretical = CTheoretical(N5);
+
+    printf("Теоретическое количество сравнений N = 100: %d\n", c1_theoretical);
+    printf("Теоретическое количество сравнений N = 200: %d\n", c2_theoretical);
+    printf("Теоретическое количество сравнений N = 300: %d\n", c3_theoretical);
+    printf("Теоретическое количество сравнений N = 400: %d\n", c4_theoretical);
+    printf("Теоретическое количество сравнений N = 500: %d\n", c5_theoretical);
+
+    int m1_theoretical = MTheoretical(N1);
+    int m2_theoretical = MTheoretical(N2);
+    int m3_theoretical = MTheoretical(N3);
+    int m4_theoretical = MTheoretical(N4);
+    int m5_theoretical = MTheoretical(N5);
+
+    printf("Теоретическое количество пересылок N = 100: %d\n", m1_theoretical);
+    printf("Теоретическое количество пересылок N = 200: %d\n", m2_theoretical);
+    printf("Теоретическое количество пересылок N = 300: %d\n", m3_theoretical);
+    printf("Теоретическое количество пересылок N = 400: %d\n", m4_theoretical);
+    printf("Теоретическое количество пересылок N = 500: %d\n", m5_theoretical);
+
+    printf("\n");
+
+    output(A, N1, &c1_theoretical, &m1_theoretical);
+    output(A, N2, &c1_theoretical, &m1_theoretical);
+    output(A, N3, &c1_theoretical, &m1_theoretical);
+    output(A, N4, &c1_theoretical, &m1_theoretical);
+    output(A, N5, &c1_theoretical, &m1_theoretical);
+
+    int results[5][6];
+    RunTests(N1, results[0]);
+    RunTests(N2, results[1]);
+    RunTests(N3, results[2]);
+    RunTests(N4, results[3]);
+    RunTests(N5, results[4]);
+
+    printf("---------------------------------------------------------------------------------------------\n");
+    printf("| N   |          M_факт+C_факт пузырьковой        |          M_факт+C_факт шейкерной        |\n");
+    printf("|     | Убыв.        | Случ.        | Возр.       | Убыв.       | Случ.       | Возр.       |\n");
+    printf("---------------------------------------------------------------------------------------------\n");
+
+    PrintTableRow(N1, results[0]);
+    PrintTableRow(N2, results[1]);
+    PrintTableRow(N3, results[2]);
+    PrintTableRow(N4, results[3]);
+    PrintTableRow(N5, results[4]);
+
+    int sizes[] = {N1, N2, N3, N4, N5};
+    int select_results[5], bubble_results[5], shaker_results[5];
+    for (int i = 0; i < 5; i++) {
+        RunTests2(sizes[i], &select_results[i], &bubble_results[i], &shaker_results[i]);
+    }
+    PlotGraph(sizes, select_results, bubble_results, shaker_results, 5);
+
+    // int theor[] = {c1_theoretical + m1_theoretical, 
+    //     c2_theoretical + m2_theoretical, 
+    //     c3_theoretical + m3_theoretical, 
+    //     c4_theoretical + m4_theoretical, 
+    //     c5_theoretical + m5_theoretical};
+
+    PlotTableGnuplot(sizes, results, 5);
+}
